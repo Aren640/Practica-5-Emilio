@@ -1,0 +1,33 @@
+services:
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:15}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"   
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  web:
+    image: ${ODOO_IMAGE:-odoo:18.0}
+    depends_on:
+      - db
+    ports:
+      - "${ODOO_HTTP_PORT:-8070}:8069"   
+      - "${ODOO_LONGPOLL_PORT:-8072}:8072"
+    environment:
+      HOST: db
+      USER: ${POSTGRES_USER:-odoo}
+      PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+    restart: unless-stopped
+
+volumes:
+  odoo-db-data:
+  odoo-web-data:
